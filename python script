@@ -1,0 +1,79 @@
+import tkinter as tk
+import scipy.stats as stats
+
+def run_ttest():
+    group_data = {}
+    num_groups = int(num_groups_entry.get())
+    alpha = 0.05
+    
+    for i in range(1, num_groups + 1):
+        group_name = group_name_entries[i - 1].get()
+        group_values = [float(x) for x in group_data_entries[i - 1].get().split(',')]
+        group_data[group_name] = group_values
+        
+    result_text.delete(1.0, tk.END)
+    
+    for group1_name, group1_data in group_data.items():
+        for group2_name, group2_data in group_data.items():
+            if group1_name != group2_name:
+                t_statistic, p_value = stats.ttest_ind(group1_data, group2_data)
+                
+                result_text.insert(tk.END, f"Comparison between {group1_name} and {group2_name}:\n")
+                result_text.insert(tk.END, f"T-Statistic: {t_statistic}\n")
+                result_text.insert(tk.END, f"P-Value: {p_value}\n")
+                
+                if p_value < alpha:
+                    result_text.insert(tk.END, "Reject the null hypothesis: There is a significant difference between the groups.\n")
+                else:
+                    result_text.insert(tk.END, "Fail to reject the null hypothesis: There is no significant difference between the groups.\n")
+                
+                result_text.insert(tk.END, "=" * 50 + "\n")
+
+def update_group_fields():
+    num_groups = int(num_groups_entry.get())
+    
+    for entry in group_name_entries:
+        entry.destroy()
+    group_name_entries.clear()
+    
+    for entry in group_data_entries:
+        entry.destroy()
+    group_data_entries.clear()
+    
+    for i in range(1, num_groups + 1):
+        group_name_label = tk.Label(app, text=f"Group {i} name:")
+        group_name_label.pack()
+
+        group_name_entry = tk.Entry(app)
+        group_name_entry.pack()
+        group_name_entries.append(group_name_entry)
+
+        group_data_label = tk.Label(app, text=f"Group {i} data (comma-separated):")
+        group_data_label.pack()
+
+        group_data_entry = tk.Entry(app)
+        group_data_entry.pack()
+        group_data_entries.append(group_data_entry)
+
+app = tk.Tk()
+app.title("T-Test App")
+
+num_groups_label = tk.Label(app, text="Enter the number of groups:")
+num_groups_label.pack()
+
+num_groups_entry = tk.Entry(app)
+num_groups_entry.pack()
+
+update_button = tk.Button(app, text="Update Fields", command=update_group_fields)
+update_button.pack()
+
+group_name_entries = []
+group_data_entries = []
+
+calculate_button = tk.Button(app, text="Calculate T-Test", command=run_ttest)
+calculate_button.pack()
+
+result_text = tk.Text(app, height=10, width=50)
+result_text.pack()
+
+app.mainloop()
